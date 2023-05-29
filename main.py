@@ -8,16 +8,20 @@ from sumy.nlp.tokenizers import Tokenizer
 from sumy.nlp.stemmers import Stemmer
 from sumy.utils import get_stop_words
 from sumy.summarizers.lsa import LsaSummarizer as Summarizer
+import xml.etree.ElementTree as ET
 import nltk
 
-#nltk.download('punkt')
-
+# Sets the number of sentences each article should be summarized to.
 SENTENCES = 5
+
 headers = {
     'User-Agent': "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/113.0"
 }
 
-numThreads = 6
+# For parallelizing the fetching of articles.
+numThreads = 4
+
+# Fetches from the RSS feed, and puts the tags nicely in lists.
 class ReadRss:
 
     def __init__(self, rss_url, headers):
@@ -26,6 +30,8 @@ class ReadRss:
         self.headers = headers
         try:
             self.r = requests.get(rss_url, headers=self.headers)
+            with open('./feed.xml', 'wb') as f:
+                f.write(self.r.content)
             self.status_code = self.r.status_code
         except Exception as e:
             print('Error fetching the URL: ', rss_url)
@@ -46,38 +52,9 @@ class ReadRss:
         self.descriptions = [d['description'] for d in self.articles_dicts if 'description' in d]
         self.pub_dates = [d['puDdate'] for d in self.articles_dicts if 'pubDate' in d]
 
-    # @property
-    # def urls(self):
-    #     return self.urls
 
-    # @urls.setter
-    # def urls(self, value):
-    #     self.urls = value
 
-    # @property
-    # def titles(self):
-    #     return self.titles
-
-    # @titles.setter
-    # def titles(self, value):
-    #     self.titles = value
-
-    # @property
-    # def descriptions(self):
-    #     return self.descriptions
-
-    # @descriptions.setter
-    # def descriptions(self, value):
-    #     self.descriptions = value
-
-    # @property
-    # def pub_dates(self):
-    #     return self.pub_dates
-
-    # @pub_dates.setter
-    # def pub_dates(self, value):
-    #     self.pub_dates = value
-
+# Given the links from the RSS-feed, we fetch the contents of the link and filter out all but the article contents.
 class FetchArticles:
     def __init__(self, urls, headers):
         self.headers = headers
@@ -98,6 +75,7 @@ class FetchArticles:
             print(e)
 
 
+# If we want to translate the articles to english, we can use this class. Not currently used.
 class TranslateArticles:
     def __init__(self, articles):
         self.articles = articles
@@ -110,19 +88,17 @@ class TranslateArticles:
         except Exception as e:
             print(e)
 
+# Given the articles contents, we can now summarize them using sumy and Lsasummarizer.
 class GenerateSummary:
     def __init__(self, articles):
         self.articles = articles
-        self.summaries = [[0]*SENTENCES]*len(articles)
-        stemmer = Stemmer('swedish')
-        summarizer = Summarizer(stemmer)
+        self.summaries = [[len(self.articles)]]*(len(self.articles))
         for i in range(len(self.articles)):
+            stemmer = Stemmer('swedish')
+            summarizer = Summarizer(stemmer)
             parser = PlaintextParser.from_string(self.articles[i], Tokenizer('swedish'))
-            j = 0
-            for sentence in (summarizer(parser.document, SENTENCES)):
-                self.summaries[i][j] = sentence
-                j += 1
-
+            sentence = (summarizer(parser.document, SENTENCES))
+            self.summaries[i] = sentence
 
 if __name__ == '__main__':
     feed = ReadRss('https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/', headers)
@@ -130,3 +106,22 @@ if __name__ == '__main__':
     articles = fetch.articles;
     translate = TranslateArticles(articles)
     summary = GenerateSummary(articles)
+    summaries = summary.summaries
+
+    tree = ET.parse('./feed.xml')
+    root = tree.getroot()
+
+    # Sumy returns a list of sentences, so we need to convert it to strings that we can append to the description tag.
+    for i, description in enumerate(tree.findall('channel/item/description')):
+        sentences = summaries[i]
+        summary = ''
+        for sentence in sentences:
+            string = str(sentence).strip('[')
+            string = string.strip(']')
+            string = string.strip(', ')
+            string = ' *' +string
+            string = string + '\n'
+            summary += string
+        description.text = summary
+
+    tree.write('./result.xml')
