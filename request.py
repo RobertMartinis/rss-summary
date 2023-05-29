@@ -34,7 +34,42 @@ class ReadRss:
         self.descriptions = [d['description'] for d in self.articles_dicts if 'description' in d]
         self.pub_dates = [d['puDdate'] for d in self.articles_dicts if 'pubDate' in d]
 
+    @property
+    def urls(self):
+        return self.urls
+
+    @urls.setter
+    def urls(self, value):
+        self.urls = value
+
+    @property
+    def titles(self):
+        return self.titles
+
+    @titles.setter
+    def titles(self, value):
+        self.titles = value
+
+    @property
+    def descriptions(self):
+        return self.descriptions
+
+    @descriptions.setter
+    def descriptions(self, value):
+        self.descriptions = value
+
+    @property
+    def pub_dates(self):
+        return self.pub_dates
+
+    @pub_dates.setter
+    def pub_dates(self, value):
+        self.pub_dates = value
+
+class FetchArticles:
+    def __init__(self):
+        self.feed = ReadRss('https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/', headers)
 if __name__ == '__main__':
 
     feed = ReadRss('https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/', headers)
-    print(feed.urls)
+    print(feed.descriptions)
