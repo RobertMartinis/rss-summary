@@ -67,14 +67,14 @@ class FetchArticles:
             for r in self.res:
                 soup = BeautifulSoup(r.text, features='html.parser')
                 article = soup.find('article')
+                if article == None:
+                    continue
                 paragraphs = article.find_all('p')
                 paragraphs = [p.text for p in paragraphs]
                 paragraphs = paragraphs[2:]
                 self.articles.append(paragraphs)
         except Exception as e:
             print(e)
-
-
 # If we want to translate the articles to english, we can use this class. Not currently used.
 class TranslateArticles:
     def __init__(self, articles):
@@ -99,6 +99,7 @@ class GenerateSummary:
             parser = PlaintextParser.from_string(self.articles[i], Tokenizer('swedish'))
             sentence = (summarizer(parser.document, SENTENCES))
             self.summaries[i] = sentence
+        print(self.summaries)
 
 if __name__ == '__main__':
     feed = ReadRss('https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/', headers)
@@ -112,16 +113,21 @@ if __name__ == '__main__':
     root = tree.getroot()
 
     # Sumy returns a list of sentences, so we need to convert it to strings that we can append to the description tag.
-    for i, description in enumerate(tree.findall('channel/item/description')):
+    description = (tree.findall('channel/item/description'))
+
+    for i in range(len(summaries)):
         sentences = summaries[i]
         summary = ''
-        for sentence in sentences:
+        for j, sentence in enumerate(sentences):
             string = str(sentence).strip('[')
             string = string.strip(']')
-            string = string.strip(', ')
-            string = ' *' +string
-            string = string + '\n'
+            string = string.strip("'")
+            string = string.strip ("',")
+            if string == ', ':
+                continue
+            string = f' {j+1}) ' +string
+            string = string + ' \n'
             summary += string
-        description.text = summary
+        description[i].text = summary
 
     tree.write('./result.xml')
