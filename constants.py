@@ -5,4 +5,4 @@ NUM_THREADS = 4
 # Number of sentences to summarize to.
 SENTENCES = 5
 # The URLS to the RSS-feeds.
-URLS = {'aftonbladet': 'https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/'}
+URLS = {'Aftonbladet': 'https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/'}

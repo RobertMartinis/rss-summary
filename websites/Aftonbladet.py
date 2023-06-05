@@ -26,7 +26,7 @@ class Aftonbladet:
         self.article_contents = []
         try:
             self.r = requests.get(rss_url, headers=self.headers)
-            with open('./feed.xml', 'wb') as f:
+            with open('./Aftonbladet_feed.xml', 'wb') as f:
                 f.write(self.r.content)
             self.status_code = self.r.status_code
         except Exception as e:
