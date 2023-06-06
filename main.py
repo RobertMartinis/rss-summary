@@ -32,6 +32,8 @@ def get_websites():
 if __name__ == '__main__':
     websites = get_websites()
     urls = URLS
+
+    # TODO: Multithread this loop.
     for website in websites:
         module = importlib.import_module('websites.' + website)
         website_class = getattr(module, website.capitalize())

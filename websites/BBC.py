@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 from bs4 import BeautifulSoup
 import requests
 import sys
@@ -11,7 +12,7 @@ from tools.Summarizer import ArticleSummarizer
 This class fetches articles from Aftonbladet's RSS feed, and summarizes them.
 """
 
-class Aftonbladet:
+class Bbc:
     """
     Initializes the class with a RSS feed URL, and a list of headers.
 
@@ -26,7 +27,7 @@ class Aftonbladet:
         self.article_contents = []
         try:
             self.r = requests.get(rss_url, headers=self.headers)
-            with open('./Aftonbladet_feed.xml', 'wb') as f:
+            with open('./BBC_feed.xml', 'wb') as f:
                 f.write(self.r.content)
             self.status_code = self.r.status_code
         except Exception as e:
@@ -39,12 +40,12 @@ class Aftonbladet:
             print(e)
         self.feed = self.soup.findAll('item')
         for a in self.feed:
+            if a.description is None:
+                self.feed.remove(a)
+                continue
             str = a.find('link').text
             str.strip('<link>')
             a.link = str
-        for a in self.feed:
-            if (a.description is None):
-                self.feed.remove(a)
         self.articles_dicts = [{'title':a.find('title').text,'link':a.link, 'description':a.find('description').text,'pubdate':a.find('pubDate').text} for a in self.feed]
         self.urls = [d['link'] for d in self.articles_dicts if 'link' in d]
         self.titles = [d['title'] for d in self.articles_dicts if 'title' in d]
