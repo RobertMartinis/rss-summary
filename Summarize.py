@@ -7,7 +7,7 @@ from constants import NUM_THREADS
 from tools.ArticleSummarizer import ArticleSummarizer
 
 """
-This class fetches articles from Aftonbladet's RSS feed, and summarizes them.
+This class fetches articles from an RSS feed, and summarizes them.
 """
 
 class Summarize:
