@@ -1,18 +1,16 @@
-#!/usr/bin/env python3
-
 from bs4 import BeautifulSoup
 import requests
 import sys
 sys.path.append('../tools')
 from concurrent.futures import ThreadPoolExecutor
 from constants import NUM_THREADS
-from tools.Summarizer import ArticleSummarizer
+from tools.ArticleSummarizer import ArticleSummarizer
 
 """
 This class fetches articles from Aftonbladet's RSS feed, and summarizes them.
 """
 
-class Bbc:
+class Summarize:
     """
     Initializes the class with a RSS feed URL, and a list of headers.
 
@@ -20,14 +18,15 @@ class Bbc:
         rss_url (str): The URL to the RSS feed.
         headers (list): A list of headers.
     """
-    def __init__(self, rss_url, headers):
+    def __init__(self, rss_url, headers, name):
         self.url = rss_url
         self.headers = headers
         self.summaries = []
         self.article_contents = []
+        self.name = name
         try:
             self.r = requests.get(rss_url, headers=self.headers)
-            with open('./BBC_feed.xml', 'wb') as f:
+            with open(f'./{name}_feed.xml', 'wb') as f:
                 f.write(self.r.content)
             self.status_code = self.r.status_code
         except Exception as e:
