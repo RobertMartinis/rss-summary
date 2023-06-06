@@ -5,6 +5,7 @@ sys.path.append('../tools')
 from concurrent.futures import ThreadPoolExecutor
 from constants import NUM_THREADS
 from tools.ArticleSummarizer import ArticleSummarizer
+from multiprocessing.pool import ThreadPool
 
 """
 This class fetches articles from an RSS feed, and summarizes them.
@@ -54,21 +55,16 @@ class Summarize:
     """
     Fetches the articles contents from the URLs, and appends them to the list of articles.
     """
-    def __fetch_articles(self):
-        try:
-            with ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
-                self.res = executor.map(requests.get, self.urls)
-            for r in self.res:
-                soup = BeautifulSoup(r.text, features='html.parser')
-                article = soup.find('article')
-                if article == None:
-                    continue
-                paragraphs = article.find_all('p')
-                paragraphs = [p.text for p in paragraphs]
-                paragraphs = paragraphs[2:]
-                self.article_contents.append(paragraphs)
-        except Exception as e:
-            print(e)
+    def __fetch_articles(self, url):
+        r = requests.get(url, headers=self.headers)
+        soup = BeautifulSoup(r.text, features='html.parser')
+        article = soup.find('article')
+        if article == None:
+            return
+        paragraphs = article.find_all('p')
+        paragraphs = [p.text for p in paragraphs]
+        paragraphs = paragraphs[2:]
+        self.article_contents.append(paragraphs)
 
     """
     Summarizes the articles.
@@ -81,6 +77,7 @@ class Summarize:
     Fetches the articles, and summarizes them.
     """
     def fetch(self):
-        self.__fetch_articles()
+        with ThreadPool(NUM_THREADS) as pool:
+            pool.map(self.__fetch_articles, self.urls)
         self.__summarize_articles()
         return self.summaries
