@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-from constants import NUM_THREADS, URLS
+from constants import URLS
 from tools.ParseXML import ParseXML
 from Summarize import Summarize
-from multiprocessing.pool import ThreadPool
+import threading
 
 # User agent to use when fetching the RSS-feed.
 headers = {
@@ -19,11 +19,10 @@ def summarize_articles(urls):
     parser.write()
 
 if __name__ == '__main__':
-    thread_data = []
+    threads = []
     for website in URLS:
-        sublist = []
-        sublist.append(website)
-        sublist.append(URLS[website])
-        thread_data.append(sublist)
-    with ThreadPool(NUM_THREADS) as pool:
-        pool.map(summarize_articles, thread_data)
+        thread = threading.Thread(target=summarize_articles, args=([website, URLS[website]],))
+        threads.append(thread)
+        thread.start()
+    for thread in threads:
+        thread.join()

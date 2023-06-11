@@ -2,10 +2,9 @@ from bs4 import BeautifulSoup
 import requests
 import sys
 sys.path.append('../tools')
-from concurrent.futures import ThreadPoolExecutor
 from constants import NUM_THREADS
 from tools.ArticleSummarizer import ArticleSummarizer
-from multiprocessing.pool import ThreadPool
+import concurrent
 
 """
 This class fetches articles from an RSS feed, and summarizes them.
@@ -25,6 +24,7 @@ class Summarize:
         self.summaries = []
         self.article_contents = []
         self.name = name
+        self.urls = []
         try:
             self.r = requests.get(rss_url, headers=self.headers)
             with open(f'./{name}_feed.xml', 'wb') as f:
@@ -41,13 +41,13 @@ class Summarize:
         self.feed = self.soup.findAll('item')
         for a in self.feed:
             if a.description is None:
-                self.feed.remove(a)
-                continue
+                new_description = self.soup.new_tag('description')
+                new_description.string = ("No summary available.")
+                a.append(new_description)
             str = a.find('link').text
             str.strip('<link>')
-            a.link = str
+            self.urls.append(str)
         self.articles_dicts = [{'title':a.find('title').text,'link':a.link, 'description':a.find('description').text,'pubdate':a.find('pubDate').text} for a in self.feed]
-        self.urls = [d['link'] for d in self.articles_dicts if 'link' in d]
         self.titles = [d['title'] for d in self.articles_dicts if 'title' in d]
         self.descriptions = [d['description'] for d in self.articles_dicts if 'description' in d]
         self.pub_dates = [d['puDdate'] for d in self.articles_dicts if 'pubDate' in d]
@@ -77,7 +77,7 @@ class Summarize:
     Fetches the articles, and summarizes them.
     """
     def fetch(self):
-        with ThreadPool(NUM_THREADS) as pool:
-            pool.map(self.__fetch_articles, self.urls)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
+            executor.map(self.__fetch_articles, self.urls)
         self.__summarize_articles()
         return self.summaries
