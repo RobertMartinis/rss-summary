@@ -33,6 +33,7 @@ class ParseXML:
                     continue
                 string = f' {j+1}) ' +string
                 string = string + ' \n'
+                string = "<br>" + string + "<\\br>"
                 summary += string
             self.description[i].text = summary
 
