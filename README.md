@@ -7,3 +7,6 @@ summaries of articles directly in your RSS reader, instead of having to open the
 # Adding RSS-Feeds
 To add an RSS-feed, append the name of the RSS-feed together with it's url in the URL-dictionary contained in `constants.py`.
 For example: `URLS =  {'BBC': 'http://feeds.bbci.co.uk/news/world/rss.xml'}`.
+
+# Change number of summarized sentences
+By default, the summary consists of 5 sentences. This can be changed in `constants.py` by changing the `SENTENCES` variable to the desired number of sentences.
