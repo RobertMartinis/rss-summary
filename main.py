@@ -2,7 +2,6 @@
 from constants import URLS
 from tools.ParseXML import ParseXML
 from Summarize import Summarize
-import threading
 
 # User agent to use when fetching the RSS-feed.
 headers = {
@@ -19,10 +18,5 @@ def summarize_articles(urls):
     parser.write()
 
 if __name__ == '__main__':
-    threads = []
     for website in URLS:
-        thread = threading.Thread(target=summarize_articles, args=([website, URLS[website]],))
-        threads.append(thread)
-        thread.start()
-    for thread in threads:
-        thread.join()
+        summarize_articles([website, URLS[website]])

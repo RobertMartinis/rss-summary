@@ -24,11 +24,15 @@ class ParseXML:
         for i in range(len(self.summaries)):
             sentences = self.summaries[i]
             summary = ''
+
             for j, sentence in enumerate(sentences):
                 string = str(sentence).strip('[')
                 string = string.strip(']')
                 string = string.strip("'")
                 string = string.strip ("',")
+                string = string.strip("', ")
+                string = string.strip('",')
+                string = string.strip("',")
                 if string == ', ':
                     continue
                 string = f' {j+1}) ' +string
