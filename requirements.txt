@@ -1,4 +1,3 @@
 beautifulsoup4==4.11.2
-googletrans==3.0.0
-Requests==2.31.0
+Requests==2.32.5
 sumy==0.11.0
